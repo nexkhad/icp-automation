@@ -35,7 +35,7 @@ app.get('/', async (req, res)=> {
     const string = fileBuffer.toString("base64")
     
     res.send(`
-    <img src="data:image/png;base64,${string}" alt="Girl in a jacket" width="500" height="600"> 
+    <img src="data:image/png;base64,${string}" alt="Girl in a jacket"> 
     `)
 })
 app.listen(process.env.PORT||3001, () => console.log('Server started on port '+process.env.PORT||3001))
