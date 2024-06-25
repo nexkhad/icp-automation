@@ -2,7 +2,8 @@
 import express from 'express'
 import { getDetails } from './captcha.js'
 import cors from 'cors'
-
+import { config } from 'dotenv'
+config()
 const app = express()
 
 app.use(express.json())
