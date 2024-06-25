@@ -270,7 +270,7 @@ export async function getDetails(passportNumber, passportExpiry) {
     const fileName = await page.evaluate(() => {
       return document
         .querySelector(
-          "uib-accordion > div > div > :nth-child(1) > div > div > div:nth-child(1) > label.ng-binding"
+          "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(1) > label.ng-binding"
         )
         .innerText.replace(/[/ ]/g, "");
     });
@@ -278,14 +278,14 @@ export async function getDetails(passportNumber, passportExpiry) {
     const uid = await page.evaluate(() => {
       return document
         .querySelector(
-          "uib-accordion > div > div > :nth-child(1) > div > div > div:nth-child(2) > label.ng-binding"
+          "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(2) > label.ng-binding"
         )
         .innerText.trim();
     });
     const status = await page.evaluate(() => {
       return document
         .querySelector(
-          "uib-accordion > div > div > :nth-child(1) > div > div > div:nth-child(3) > label.ng-binding"
+          "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div > :nth-child(2)"
         )
         .innerText.trim();
     });
