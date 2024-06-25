@@ -258,25 +258,6 @@ export async function getDetails(passportNumber, passportExpiry) {
 
     await setTimeout(3000);
 
-    try {
-      const isAvaliable = await page.waitForSelector('uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(1) > label.ng-binding')
-      
-      if(!isAvaliable){
-        console.log('not avaliable');
-        await page.close()
-        await browser.close()
-       return {
-         message: 'not avaliable'
-       }
-      }
-    } catch (error) {
-      await page.close()
-      await browser.close()
-      return {
-        message: 'not avaliable'
-      }
-    }
-
     const fileName = await page.evaluate(() => {
       return document
         .querySelector(
