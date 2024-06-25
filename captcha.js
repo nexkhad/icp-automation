@@ -301,27 +301,27 @@ export async function getDetails(passportNumber, passportExpiry) {
         )
         .innerText.trim();
     });
-    const expiry = await page.evaluate(() => {
-      return document
-        .querySelector(
-          "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(4) > label.ng-binding"
-        )
-        .innerText.trim();
-    });
-    const ldOfleaving = await page.evaluate(() => {
-      return document
-        .querySelector(
-          "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(5) > label.ng-binding"
-        )
-        .innerText.trim();
-    });
-    const issueDate = await page.evaluate(() => {
-      return document
-        .querySelector(
-          "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(2) > label.ng-binding"
-        )
-        .innerText.trim();
-    });
+    // const expiry = await page.evaluate(() => {
+    //   return document
+    //     .querySelector(
+    //       "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(4) > label.ng-binding"
+    //     )
+    //     .innerText.trim();
+    // });
+    // const ldOfleaving = await page.evaluate(() => {
+    //   return document
+    //     .querySelector(
+    //       "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(5) > label.ng-binding"
+    //     )
+    //     .innerText.trim();
+    // });
+    // const issueDate = await page.evaluate(() => {
+    //   return document
+    //     .querySelector(
+    //       "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(2) > label.ng-binding"
+    //     )
+    //     .innerText.trim();
+    // });
 
     let historyStatus = false;
 
@@ -340,9 +340,6 @@ export async function getDetails(passportNumber, passportExpiry) {
   fileId : ${fileName}
   uid:  ${uid}
   status: ${status}
-  issue date: ${issueDate}
-  expiry: ${expiry}
-  last day of leaving: ${ldOfleaving}
   ${historyStatus ? "history available" : "history not available"}
     `);
 
