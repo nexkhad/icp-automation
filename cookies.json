@@ -1,0 +1,17 @@
+[
+  {
+    "name": "9W",
+    "value": "WmbMUGQj7p8zgxPFy9oKxLAJsuQXX4yxuHqFV2pSx2aM9qVLRjNygeJNJLOPQdeQSrjilAkREUz2Fi-UuG3587TmTXDPgynb%2C5BYSMIhOTfTj6hkI5bmB5RRKmh9L6I%2C",
+    "domain": "princessbooking.com",
+    "path": "/",
+    "expires": -1,
+    "size": 134,
+    "httpOnly": true,
+    "secure": true,
+    "session": true,
+    "sameSite": "None",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  }
+]
