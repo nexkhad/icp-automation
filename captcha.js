@@ -224,7 +224,7 @@ export async function getDetails(passportNumber, passportExpiry) {
     );
     console.log("Navigating to page...");
     await page.goto(
-      "https://smartservices.icp.gov.ae/echannels/web/client/default.html#/fileValidity",
+      "https://beta.smartservices.icp.gov.ae/echannels/web/client/default.html#/fileValidity",
       {
         waitUntil: "networkidle0",
       }
