@@ -266,7 +266,7 @@ export async function getDetails(passportNumber, passportExpiry) {
     await search.click();
 
     await setTimeout(3000);
-
+    await page.screenshot({path: './screenshot.png'})
     const fileName = await page.evaluate(() => {
       return document
         .querySelector(
