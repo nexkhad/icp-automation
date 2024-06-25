@@ -32,7 +32,7 @@ app.post('/',async (req, res)=> {
 
 app.get('/', async (req, res)=> {
     const fileBuffer = await fs.readFileSync('./screenshot.png')
-    const string = fileBuffer.toString("base64url")
+    const string = fileBuffer.toString("base64")
     
     res.send(`
     <img src="${string}" alt="Girl in a jacket" width="500" height="600"> 
