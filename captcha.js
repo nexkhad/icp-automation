@@ -350,9 +350,6 @@ export async function getDetails(passportNumber, passportExpiry) {
       fileName,
       uid,
       status,
-      issueDate,
-      expiry,
-      ldOfleaving,
       historyStatus,
     };
 
