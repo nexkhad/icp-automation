@@ -211,12 +211,18 @@ const launchProdConfig = {
 };
 export async function getDetails(passportNumber, passportExpiry) {
   const stealthBrowser = puppeteer.use(StealthPlugin);
+  console.log("Launching browser...");
   const browser = await stealthBrowser.launch(
     process.env.PRODUCTION ? launchProdConfig : launchDevConfig
   );
   try {
+    console.log("Creating new page...");
     const page = await browser.newPage();
-    await page.setUserAgent(userAgents[randomNumber(1, userAgents.length)]);
+    console.log("Setting user agent...");
+    await page.setUserAgent(
+      userAgents[randomNumber(1, userAgents.length)]
+    );
+    console.log("Navigating to page...");
     await page.goto(
       "https://smartservices.icp.gov.ae/echannels/web/client/default.html#/fileValidity",
       {
@@ -224,17 +230,19 @@ export async function getDetails(passportNumber, passportExpiry) {
       }
     );
 
+    console.log("Clicking passport button...");
     const passportBtn = await page.waitForSelector(
       '[name="selectIdentificater"]'
     );
     await passportBtn.click();
 
-    console.log("clicking visa");
+    console.log("Clicking visa button...");
     const visaResidensyBtn = await page.waitForSelector(
       '[name="selectModule"][value="2"]'
     );
     await visaResidensyBtn.click();
-    console.log("filling details");
+
+    console.log("Filling passport details...");
     const passportNumberInput = await page.waitForSelector(
       '[name="passportNo"]'
     );
@@ -251,6 +259,7 @@ export async function getDetails(passportNumber, passportExpiry) {
     await countryCodeInput.type("205");
 
     await setTimeout(3000);
+    console.log("Solving captcha...");
     await solveGoogleCaptcha(page);
 
     const search = await page.waitForSelector(".btn-addon");
@@ -261,7 +270,7 @@ export async function getDetails(passportNumber, passportExpiry) {
     const fileName = await page.evaluate(() => {
       return document
         .querySelector(
-          "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(1) > label.ng-binding"
+          "uib-accordion > div > div > :nth-child(1) > div > div > div:nth-child(1) > label.ng-binding"
         )
         .innerText.replace(/[/ ]/g, "");
     });
@@ -269,41 +278,21 @@ export async function getDetails(passportNumber, passportExpiry) {
     const uid = await page.evaluate(() => {
       return document
         .querySelector(
-          "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(2) > label.ng-binding"
+          "uib-accordion > div > div > :nth-child(1) > div > div > div:nth-child(2) > label.ng-binding"
         )
         .innerText.trim();
     });
     const status = await page.evaluate(() => {
       return document
         .querySelector(
-          "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(1) > label.ng-binding"
+          "uib-accordion > div > div > :nth-child(1) > div > div > div:nth-child(3) > label.ng-binding"
         )
         .innerText.trim();
     });
-    // const expiry = await page.evaluate(() => {
-    //   return document
-    //     .querySelector(
-    //       "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(4) > label.ng-binding"
-    //     )
-    //     .innerText.trim();
-    // });
-    // const ldOfleaving = await page.evaluate(() => {
-    //   return document
-    //     .querySelector(
-    //       "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(5) > label.ng-binding"
-    //     )
-    //     .innerText.trim();
-    // });
-    // const issueDate = await page.evaluate(() => {
-    //   return document
-    //     .querySelector(
-    //       "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div:nth-child(2) > label.ng-binding"
-    //     )
-    //     .innerText.trim();
-    // });
 
     let historyStatus = false;
 
+    console.log("Checking history...");
     const oldFiles = await page.waitForSelector('[name="viewOldFiles"]');
     await oldFiles.click();
 
@@ -315,7 +304,7 @@ export async function getDetails(passportNumber, passportExpiry) {
       historyStatus = true;
     }
 
-      console.log(`
+    console.log(`
   fileId : ${fileName}
   uid:  ${uid}
   status: ${status}
