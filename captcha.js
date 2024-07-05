@@ -163,6 +163,8 @@ import { solveGoogleCaptcha } from "./solver.js";
 import chromium from "@sparticuz/chromium";
 import RecaptchaPlugin from "puppeteer-extra-plugin-recaptcha";
 import path from "path";
+import { config } from "dotenv";
+config();
 const __dirname = path.resolve();
 const solveCaptcha = async (page) => {
   await page.solveRecaptchas();
