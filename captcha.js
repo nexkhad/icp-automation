@@ -220,6 +220,7 @@ const launchProdConfig = {
 };
 
 console.log("Launching browser...");
+console.log(process.env.PRODUCTION ? 'Production mode' : 'Dev mode');
 const browser = await puppeteer.launch(
   process.env.PRODUCTION ? launchProdConfig : launchDevConfig
 );
