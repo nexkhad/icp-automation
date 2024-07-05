@@ -38,4 +38,4 @@ app.get('/', async (req, res)=> {
     <img src="data:image/png;base64,${string}" alt="Girl in a jacket"> 
     `)
 })
-app.listen(process.env.PORT||3001, () => console.log('Server started on port '+process.env.PORT||3001))
+app.listen(process.env.PORT||3001, () => console.log(`Server started on port ${process.env.PORT ? process.env.PORT : 3001}`))

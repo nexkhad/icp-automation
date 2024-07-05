@@ -161,26 +161,29 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { solveGoogleCaptcha } from "./solver.js";
 import chromium from "@sparticuz/chromium";
+import RecaptchaPlugin from "puppeteer-extra-plugin-recaptcha";
+import path from "path";
+const __dirname = path.resolve();
+const solveCaptcha = async (page) => {
+  await page.solveRecaptchas();
+};
 
-const userAgents = [
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.142.86 Safari/537.36",
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (compatible; MSIE 11.0; Windows; Windows NT 6.0; Win64; x64; en-US Trident/7.0)",
-  "Mozilla/5.0 (U; Linux i644 ) Gecko/20100101 Firefox/70.8",
-  "Mozilla/5.0 (compatible; MSIE 8.0; Windows; Windows NT 6.2; Trident/4.0)",
-  "Mozilla/5.0 (Linux; U; Android 4.4.4; SM-E500L Build/KTU84P) AppleWebKit/537.16 (KHTML, like Gecko)  Chrome/51.0.1177.381 Mobile Safari/534.3",
-  "Mozilla/5.0 (Windows; U; Windows NT 10.4; x64; en-US) AppleWebKit/600.6 (KHTML, like Gecko) Chrome/47.0.2021.140 Safari/533.3 Edge/11.55035",
-  "Mozilla/5.0 (Linux; U; Android 4.3.1; HTC One 801s Build/JSS15J) AppleWebKit/603.27 (KHTML, like Gecko)  Chrome/50.0.2963.252 Mobile Safari/600.9",
-  "Mozilla/5.0 (Linux; U; Linux i573 ; en-US) Gecko/20100101 Firefox/54.5",
-  "Mozilla/5.0 (Windows NT 10.0;) AppleWebKit/536.30 (KHTML, like Gecko) Chrome/54.0.2841.266 Safari/601.0 Edge/9.94421",
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 7_0_6; en-US) Gecko/20100101 Firefox/55.3",
-  "Mozilla/5.0 (compatible; MSIE 9.0; Windows; Windows NT 6.1; x64 Trident/5.0)",
-];
+const pathToExtension = path.join(__dirname, "2captcha-solver");
+
+puppeteer.use(StealthPlugin());
+
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: {
+      id: "2captcha",
+      token: process.env.CAPTCHA_API_KEY, // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+    },
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+  })
+);
 
 // Function to generate random number
-function randomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
+
 const launchDevConfig = {
   headless: false,
   devtools: false,
@@ -199,29 +202,35 @@ const launchDevConfig = {
     "--flag-switches-begin --disable-site-isolation-trials --flag-switches-end",
     "--disable-cache",
     "--disable-application-cache",
+    `--disable-extensions-except=${pathToExtension}`,
+    `--load-extension=${pathToExtension}`,
   ],
 };
 
 const launchProdConfig = {
-  args: chromium.args,
+  args: [
+    ...chromium.args,
+    `--disable-extensions-except=${pathToExtension}`,
+    `--load-extension=${pathToExtension}`,
+  ],
   defaultViewport: chromium.defaultViewport,
   executablePath: await chromium.executablePath(),
   headless: chromium.headless,
   ignoreHTTPSErrors: true,
 };
+
+console.log("Launching browser...");
+const browser = await puppeteer.launch(
+  process.env.PRODUCTION ? launchProdConfig : launchDevConfig
+);
+
+
 export async function getDetails(passportNumber, passportExpiry) {
-  const stealthBrowser = puppeteer.use(StealthPlugin);
-  console.log("Launching browser...");
-  const browser = await stealthBrowser.launch(
-    process.env.PRODUCTION ? launchProdConfig : launchDevConfig
-  );
+
+  console.log("Creating new page...");
+  const page = await browser.newPage();
   try {
-    console.log("Creating new page...");
-    const page = await browser.newPage();
     console.log("Setting user agent...");
-    await page.setUserAgent(
-      userAgents[randomNumber(1, userAgents.length)]
-    );
     console.log("Navigating to page...");
     await page.goto(
       "https://beta.smartservices.icp.gov.ae/echannels/web/client/default.html#/fileValidity",
@@ -230,99 +239,118 @@ export async function getDetails(passportNumber, passportExpiry) {
       }
     );
 
+    console.log("Solving captcha...");
+
+    const elementHandle = await page.$('iframe[title="reCAPTCHA"]');
+    const frame = await elementHandle.contentFrame();
+
+    console.log("frame selected");
+    await frame.waitForSelector(`#rc-anchor-container`);
+    await frame.click(`#rc-anchor-container`);
+
+    let captcha = await frame.waitForSelector(`.recaptcha-checkbox-unchecked`, {
+      timeout: 180000,
+    });
+
+    if(captcha){
+      console.log("done solving");
+    }else{
+     return {
+      message: "not avaliable"
+     }
+    }
+
+
+    console.log("waiting for frame");
+    // set the page as iframe and go to the #rc-anchor-container div and click
+
     console.log("Clicking passport button...");
     const passportBtn = await page.waitForSelector(
       '[name="selectIdentificater"]'
     );
     await passportBtn.click();
 
-    console.log("Clicking visa button...");
-    const visaResidensyBtn = await page.waitForSelector(
-      '[name="selectModule"][value="2"]'
-    );
-    await visaResidensyBtn.click();
+      console.log("Clicking visa button...");
+      const visaResidensyBtn = await page.waitForSelector(
+        '[name="selectModule"][value="2"]'
+      );
+      await visaResidensyBtn.click();
 
-    console.log("Filling passport details...");
-    const passportNumberInput = await page.waitForSelector(
-      '[name="passportNo"]'
-    );
-    await passportNumberInput.type(passportNumber);
+      console.log("Filling passport details...");
+      const passportNumberInput = await page.waitForSelector(
+        '[name="passportNo"]'
+      );
+      await passportNumberInput.type(passportNumber);
 
-    const passportExpiryInput = await page.waitForSelector(
-      '[name="passportExpireDate"]'
-    );
-    await passportExpiryInput.type(passportExpiry);
+      const passportExpiryInput = await page.waitForSelector(
+        '[name="passportExpireDate"]'
+      );
+      await passportExpiryInput.type(passportExpiry);
 
-    const countryCodeInput = await page.waitForSelector(
-      ".input-group-addon > input:nth-child(1)"
-    );
-    await countryCodeInput.type("205");
+      const countryCodeInput = await page.waitForSelector(
+        ".input-group-addon > input:nth-child(1)"
+      );
+      await countryCodeInput.type("205");
+    
 
-    await setTimeout(3000);
-    console.log("Solving captcha...");
-    await solveGoogleCaptcha(page);
+      const search = await page.waitForSelector(".btn-addon");
+      await search.click();
+    console.log("clicked the search");
+      await setTimeout(3000);
+      await page.screenshot({path: './screenshot.png'})
+      const fileName = await page.evaluate(() => {
+        return document
+          .querySelector(
+            "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(1) > label.ng-binding"
+          )
+          .innerText.replace(/[/ ]/g, "");
+      });
 
-    const search = await page.waitForSelector(".btn-addon");
-    await search.click();
+      const uid = await page.evaluate(() => {
+        return document
+          .querySelector(
+            "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(2) > label.ng-binding"
+          )
+          .innerText.trim();
+      });
+      const status = await page.evaluate(() => {
+        return document
+          .querySelector(
+            "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div > :nth-child(2)"
+          )
+          .innerText.trim();
+      });
 
-    await setTimeout(3000);
-    await page.screenshot({path: './screenshot.png'})
-    const fileName = await page.evaluate(() => {
-      return document
-        .querySelector(
-          "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(1) > label.ng-binding"
-        )
-        .innerText.replace(/[/ ]/g, "");
-    });
+      let historyStatus = false;
 
-    const uid = await page.evaluate(() => {
-      return document
-        .querySelector(
-          "uib-accordion > div > div > :nth-child(2) > div > div > div:nth-child(2) > label.ng-binding"
-        )
-        .innerText.trim();
-    });
-    const status = await page.evaluate(() => {
-      return document
-        .querySelector(
-          "uib-accordion > div > :nth-child(2) > :nth-child(2) > div > div > :nth-child(2)"
-        )
-        .innerText.trim();
-    });
+      console.log("Checking history...");
+      const oldFiles = await page.waitForSelector('[name="viewOldFiles"]');
+      await oldFiles.click();
 
-    let historyStatus = false;
+      const history = await page.$$(
+        "uib-accordion > div > :nth-child(4) > :nth-child(2) > div > div > div > table > tbody > tr"
+      );
 
-    console.log("Checking history...");
-    const oldFiles = await page.waitForSelector('[name="viewOldFiles"]');
-    await oldFiles.click();
+      if (history.length) {
+        historyStatus = true;
+      }
 
-    const history = await page.$$(
-      "uib-accordion > div > :nth-child(4) > :nth-child(2) > div > div > div > table > tbody > tr"
-    );
+      console.log(`
+    fileId : ${fileName}
+    uid:  ${uid}
+    status: ${status}
+    ${historyStatus ? "history available" : "history not available"}
+      `);
 
-    if (history.length) {
-      historyStatus = true;
-    }
-
-    console.log(`
-  fileId : ${fileName}
-  uid:  ${uid}
-  status: ${status}
-  ${historyStatus ? "history available" : "history not available"}
-    `);
-
-    await page.close();
-    await browser.close();
-
-    return {
-      fileName,
-      uid,
-      status,
-      historyStatus,
-    };
-
+      await page.close();
+      return {
+        fileName,
+        uid,
+        status,
+        historyStatus,
+      };
   } catch (error) {
+    // await page.close()
     console.log(error);
-    await browser.close();
   }
 }
